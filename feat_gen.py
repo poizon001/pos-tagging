@@ -44,6 +44,18 @@ adverb_suffix = {"ly", "ward", "wards", "wise"}
 
 transition_words = {"indeed","further","either", "neither","also", "moreover","furthermore", "besides","actually",\
                     "too","let", "additionally","nor","alternatively"}
+
+pronouns = {"all","another","any","anybody","anyone","anything","as","aught","both","each","each other","either",\
+            "enough","everybody","everyone","everything","few","he","her","hers","herself","him","himself","his",\
+            "i","idem","it","its","itself","many","me","mine","most","my","myself","naught","neither","no one","nobody",\
+            "none","nothing","nought","one","one another","other","others","ought","our","ours","ourself","ourselves",\
+            "several","she","some","somebody","someone","something","somewhat","such","suchlike","that","thee","their",\
+            "theirs","theirself","theirselves","them","themself","themselves","there","these","they","thine","this","those",\
+            "thou","thy","thyself","us","we","what","whatever","whatnot","whatsoever","whence","where","whereby","wherefrom",\
+            "wherein","whereinto","whereof","whereon","wherever","wheresoever","whereto","whereunto","wherewith","wherewithal",\
+            "whether","which","whichever","whichsoever","who","whoever","whom","whomever","whomso","whomsoever","whose",\
+            "whosever","whosesoever","whoso","whosoever","ye","yon","yonder","you","your","yours","yourself","yourselves"}
+
 global common_adjs
 
 porter = PorterStemmer()
@@ -60,9 +72,45 @@ def preprocess_corpus(train_sents):
     """
 
     global common_adjs
-    with open("common_adj.csv", "r") as file:
+    with open("./common_adj.csv", "r") as file:
         for line in file:
             common_adjs = set(line.split(","))
+
+def isNounSuffix(word):
+    for x in noun_suffix:
+        if x in word.lower():
+            return True
+
+    return False
+
+def isVerbPrefix(word):
+    for x in verb_suffix:
+        if x in word.lower():
+            return True
+
+    return False
+
+def isAdjSuffix(word):
+    for x in adj_suffix:
+        if x in word.lower():
+            return True
+    
+    return False
+
+def isAdvSuffix(word):
+    for x in adverb_suffix:
+        if x in word.lower():
+            return True
+
+    return False
+
+def isPrefix(word):
+    for x in prefix:
+        if x in word.lower():
+            return True
+
+    return False
+
 
 def token2features(sent, i, add_neighs = True):
     """Compute the features of a token.
@@ -149,45 +197,33 @@ def token2features(sent, i, add_neighs = True):
     if word.lower() in common_adjs:
         ftrs.append("IS_CMADJ")
 
-    #11. word is noun_suffix
-    for x in noun_suffix:
-        if x in word.lower():
-            ftrs.append("IS_NOUN_SFX")
-            break
+    #11. word is noun suffix
+    if isNounSuffix(word):
+        ftrs.append("IS_NOUN_SFX")
 
     #12. word is verb_suffix
-    for x in verb_suffix:
-        if x in word.lower():
-            ftrs.append("IS_VRB_SFX")
-            break
+    if isVerbPrefix(word):
+        ftrs.append("IS_VRB_SFX")
 
     #13. word is adj_suffix
-    for x in adj_suffix:
-        if x in word.lower():
-            ftrs.append("IS_ADJ_SFX")
-            break
+    if isAdjSuffix(word):
+        ftrs.append("IS_ADJ_SFX")
 
     #14. word is adverb_suffix
-    for x in adverb_suffix:
-        if x in word.lower():
-            ftrs.append("IS_ADV_SFX")
-            break
-
-    #14. word is having prefix
-    for x in prefix:
-        if x in word.lower():
-            ftrs.append("IS_PREFX")
-            break
+    if isAdvSuffix(word):
+        ftrs.append("IS_ADV_SFX")
 
     #15. word is having prefix
-    for x in prefix:
-        if x in word:
-            ftrs.append("IS_PREFX")
-            break
+    if isPrefix(word):
+        ftrs.append("IS_PREFX")
 
+    #16. word is having prefix
     if word.lower() in transition_words:
         ftrs.append("IS_TNSN")
 
+    #17. word is a pronoun
+    if word.lower() in pronouns:
+        ftrs.append("IS_PRNN")
 
     # previous/next word feats
     if add_neighs:
